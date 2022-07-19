@@ -23,7 +23,7 @@ logging.basicConfig(
 )
 
 # Initialize client class (DBT_CLOUD_SERVICE_TOKEN set as env var)
-client = dbtCloudClient(service_token='dbts__QIqOqsMyYeXzlZUMhpHsmeT2uA_INHEmzuGzb1EvyP_p72J3kKC3FoA==')
+client = dbtCloudClient()
 
 
 def trigger_job(job_id: int, payload: Dict, poll_interval: int = 10):
