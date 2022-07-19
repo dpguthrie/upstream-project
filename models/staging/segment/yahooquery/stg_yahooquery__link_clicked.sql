@@ -25,8 +25,7 @@ renamed as (
         sent_at,
         context_library_name,
         context_locale,
-        context_page_path,
-        context_page_referrer
+        context_page_path
 
     from source
 
