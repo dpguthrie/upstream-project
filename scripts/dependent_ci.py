@@ -74,7 +74,7 @@ def main():
         'github_pull_request_id': int(pull_request),
         'schema_override': schema_override,  
     }
-    logging.info(upstream_payload)
+
     upstream_run = trigger_job(UPSTREAM_JOB_ID, upstream_payload)
     
     if upstream_run['data']['status'] != 10:
@@ -96,6 +96,10 @@ def main():
     ]
     logging.info(f'Upstream models include: {", ".join(upstream_models)}')
     
+    # Early exit here if no models have been found
+    if len(upstream_models) == 0:
+        return
+    
     # Retrieve downstream models from metadata
     downstream_models = get_models_from_metadata(DOWNSTREAM_JOB_ID)
     
@@ -114,8 +118,6 @@ def main():
         sources = list(
             set([s['sourceName'] for s in sources if s['name'] in upstream_models])
         )
-
-        logging.info(sources)
         
         variables = {SOURCES[s]: schema_override for s in sources}
     
@@ -126,7 +128,7 @@ def main():
             'schema_override': schema_override,
             'steps_override': [f"dbt build --vars '{json.dumps(variables)}' --select {selectors}"],
         }
-        logging.info(downstream_payload)
+
         downstream_run = trigger_job(DOWNSTREAM_JOB_ID, downstream_payload)
         if downstream_run['data']['status'] != 10:
             raise Exception(
