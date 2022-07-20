@@ -25,7 +25,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 
-
 # Initialize client class (DBT_CLOUD_SERVICE_TOKEN set as env var)
 client = dbtCloudClient()
 
