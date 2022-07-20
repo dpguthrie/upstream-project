@@ -66,9 +66,6 @@ def main():
     github_ref = os.environ.get('GITHUB_REF')
     pull_request = github_ref.split('/')[2]
     schema_override = f'dbt_cloud_pr_{UPSTREAM_JOB_ID}_{pull_request}'
-
-    logging.info(f'github_sha: {os.environ.get("GITHUB_SHA")}')
-    logging.info(f'git_sha: {os.environ.get("GIT_SHA")}')
     
     # Trigger upstream project's CI job
     upstream_payload = {
@@ -113,10 +110,12 @@ def main():
     
     # Only trigger downstream job if necessary
     if downstream_models_to_build:
-        downstream_sources = set([
-            m['parentsSources'][0]['sourceName'] for m in downstream_models
-            if m['name'] in downstream_models_to_build
-        ])
+        downstream_sources = client.metadata.get_sources(DOWNSTREAM_JOB_ID)['data']['sources']
+        downstream_sources = list(
+            set([s['sourceName'] for s in sources if s['name'] in upstream_models])
+        )
+
+        logging.info(downstream_sources)
         
         variables = {SOURCES[s]: schema_override for s in downstream_sources}
     
