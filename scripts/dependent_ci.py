@@ -65,12 +65,15 @@ def main():
     # Get pull request #
     github_ref = os.environ.get('GITHUB_REF')
     pull_request = github_ref.split('/')[2]
-    schema_override = f'dbt_cloud_pr_{pull_request}_{UPSTREAM_JOB_ID}'
+    schema_override = f'dbt_cloud_pr_{UPSTREAM_JOB_ID}_{pull_request}'
+
+    logging.info(f'github_sha: {os.environ.get("GITHUB_SHA")}')
+    logging.info(f'git_sha: {os.environ.get("GIT_SHA")}')
     
     # Trigger upstream project's CI job
     upstream_payload = {
         'cause': CAUSE,
-        'git_sha': os.environ.get('GITHUB_SHA'),
+        'git_sha': os.environ.get('GIT_SHA'),
         'github_pull_request_id': int(pull_request),
         'schema_override': schema_override,  
     }
