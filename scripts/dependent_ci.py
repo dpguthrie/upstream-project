@@ -1,5 +1,6 @@
 # stdlib
 import logging
+import json
 import os
 from typing import Dict
 
@@ -11,10 +12,12 @@ from dbtc import dbtCloudClient
 UPSTREAM_JOB_ID = os.environ.get('UPSTREAM_JOB_ID')
 DOWNSTREAM_JOB_ID = os.environ.get('DOWNSTREAM_JOB_ID')
 ACCOUNT_ID = os.environ.get('DBT_CLOUD_ACCOUNT_ID')
+CAUSE = 'CI run, triggered by github actions'
 
-# Payload
-PAYLOAD = {
-    'cause': 'CI run, triggered by github actions'
+# Set upstream sources and schema variable
+SOURCES = {
+    'dbtc': 'upstream_dbtc_schema',
+    'yahooquery': 'upstream_yahooquery_schema',
 }
 
 logging.basicConfig(
@@ -37,6 +40,7 @@ def get_models_from_metadata(job_id, **kwargs):
         return models['data']['models']
     
     else:
+        # Should only be necessary for a job that's never been run
         payload = {
             'cause': 'Metadata not found, triggering simple job with override',
             'steps_override': ['dbt compile']
@@ -58,8 +62,20 @@ def get_run_url(run: Dict):
 
 
 def main():
+    # Get pull request #
+    github_ref = os.environ.get('GITHUB_REF')
+    pull_request = github_ref.split('/')[2]
+    schema_override = f'dbt_cloud_pr_{pull_request}_{UPSTREAM_JOB_ID}'
+    
     # Trigger upstream project's CI job
-    upstream_run = trigger_job(UPSTREAM_JOB_ID, PAYLOAD)
+    upstream_payload = {
+        'cause': CAUSE,
+        'git_sha': os.environ.get('GITHUB_SHA'),
+        'git_branch': os.environ.get('GITHUB_HEAD_REF'),
+        'schema_override': schema_override,  
+    }
+    logging.info(upstream_payload)
+    upstream_run = trigger_job(UPSTREAM_JOB_ID, upstream_payload)
     
     if upstream_run['data']['status'] != 10:
         raise Exception(
@@ -85,19 +101,31 @@ def main():
     
     # Retrieve names of downstream models that need to be run based on the models
     # they depend on (check if those are included in the upstream_models list)
-    downstream_models = set([
+    downstream_models_to_build = set([
         m['name'] for m in downstream_models
         if any(source.split('.')[-1] in upstream_models for source in m['dependsOn'])
     ])
-    logging.info(f'Relevant downstream models include: {", ".join(downstream_models)}')
+
+    logging.info(f'Relevant downstream models include: {", ".join(downstream_models_to_build)}')
     
     # Only trigger downstream job if necessary
-    if downstream_models:
+    if downstream_models_to_build:
+        downstream_sources = set([
+            m['parentsSources'][0]['sourceName'] for m in downstream_models
+            if m['name'] in downstream_models_to_build
+        ])
+        
+        variables = {SOURCES[s]: schema_override for s in downstream_sources}
     
         # Create the command to override the steps in the downstream job, then trigger
-        selectors = ' '.join([name + '+' for name in downstream_models])
-        PAYLOAD['steps_override'] = [f'dbt build -s {selectors}']
-        downstream_run = trigger_job(DOWNSTREAM_JOB_ID, PAYLOAD)
+        selectors = ' '.join([name + '+' for name in downstream_models_to_build])
+        downstream_payload = {
+            'cause': CAUSE,
+            'schema_override': schema_override,
+            'steps_override': [f'dbt build --vars {json.dumps(variables)} --select {selectors}'],
+        }
+        logging.info(downstream_payload)
+        downstream_run = trigger_job(DOWNSTREAM_JOB_ID, downstream_payload)
         if downstream_run['data']['status'] != 10:
             raise Exception(
                 f'Downstream CI run not succesful!  View here - {get_run_url(downstream_run)}'
