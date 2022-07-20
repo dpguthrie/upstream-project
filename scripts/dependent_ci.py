@@ -72,6 +72,7 @@ def main():
         'cause': CAUSE,
         'git_sha': os.environ.get('GITHUB_SHA'),
         'github_pull_request_id': int(pull_request),
+        'schema_override': schema_override,  
     }
     logging.info(upstream_payload)
     upstream_run = trigger_job(UPSTREAM_JOB_ID, upstream_payload)
