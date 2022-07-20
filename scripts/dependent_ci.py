@@ -110,14 +110,14 @@ def main():
     
     # Only trigger downstream job if necessary
     if downstream_models_to_build:
-        downstream_sources = client.metadata.get_sources(DOWNSTREAM_JOB_ID)['data']['sources']
-        downstream_sources = list(
+        sources = client.metadata.get_sources(DOWNSTREAM_JOB_ID)['data']['sources']
+        sources = list(
             set([s['sourceName'] for s in sources if s['name'] in upstream_models])
         )
 
-        logging.info(downstream_sources)
+        logging.info(sources)
         
-        variables = {SOURCES[s]: schema_override for s in downstream_sources}
+        variables = {SOURCES[s]: schema_override for s in sources}
     
         # Create the command to override the steps in the downstream job, then trigger
         selectors = ' '.join([name + '+' for name in downstream_models_to_build])
