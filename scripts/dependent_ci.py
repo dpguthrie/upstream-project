@@ -125,7 +125,7 @@ def main():
         downstream_payload = {
             'cause': CAUSE,
             'schema_override': schema_override,
-            'steps_override': [f'dbt build --vars {json.dumps(variables)} --select {selectors}'],
+            'steps_override': [f"dbt build --vars '{json.dumps(variables)}' --select {selectors}"],
         }
         logging.info(downstream_payload)
         downstream_run = trigger_job(DOWNSTREAM_JOB_ID, downstream_payload)
