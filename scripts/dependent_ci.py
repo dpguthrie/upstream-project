@@ -71,8 +71,7 @@ def main():
     upstream_payload = {
         'cause': CAUSE,
         'git_sha': os.environ.get('GITHUB_SHA'),
-        'git_branch': os.environ.get('GITHUB_HEAD_REF'),
-        'schema_override': schema_override,  
+        'github_pull_request_id': int(pull_request),
     }
     logging.info(upstream_payload)
     upstream_run = trigger_job(UPSTREAM_JOB_ID, upstream_payload)
