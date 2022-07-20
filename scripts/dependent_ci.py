@@ -65,13 +65,13 @@ def main():
     # Get pull request #
     github_ref = os.environ.get('GITHUB_REF')
     pull_request = github_ref.split('/')[2]
-    schema_override = f'dbt_cloud_pr_{pull_request}_{UPSTREAM_JOB_ID}'
+    schema_override = f'dbt_cloud_pr_{UPSTREAM_JOB_ID}_{pull_request}'
     
     # Trigger upstream project's CI job
     upstream_payload = {
         'cause': CAUSE,
-        'git_sha': os.environ.get('GITHUB_SHA'),
-        'git_branch': os.environ.get('GITHUB_HEAD_REF'),
+        'git_sha': os.environ.get('GIT_SHA'),
+        'github_pull_request_id': int(pull_request),
         'schema_override': schema_override,  
     }
     logging.info(upstream_payload)
@@ -110,19 +110,21 @@ def main():
     
     # Only trigger downstream job if necessary
     if downstream_models_to_build:
-        downstream_sources = set([
-            m['parentsSources'][0]['sourceName'] for m in downstream_models
-            if m['name'] in downstream_models_to_build
-        ])
+        sources = client.metadata.get_sources(DOWNSTREAM_JOB_ID)['data']['sources']
+        sources = list(
+            set([s['sourceName'] for s in sources if s['name'] in upstream_models])
+        )
+
+        logging.info(sources)
         
-        variables = {SOURCES[s]: schema_override for s in downstream_sources}
+        variables = {SOURCES[s]: schema_override for s in sources}
     
         # Create the command to override the steps in the downstream job, then trigger
         selectors = ' '.join([name + '+' for name in downstream_models_to_build])
         downstream_payload = {
             'cause': CAUSE,
             'schema_override': schema_override,
-            'steps_override': [f'dbt build --vars {json.dumps(variables)} --select {selectors}'],
+            'steps_override': [f"dbt build --vars '{json.dumps(variables)}' --select {selectors}"],
         }
         logging.info(downstream_payload)
         downstream_run = trigger_job(DOWNSTREAM_JOB_ID, downstream_payload)
