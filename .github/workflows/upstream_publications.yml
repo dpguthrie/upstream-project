@@ -52,14 +52,15 @@ jobs:
           mkdir publications
           mv target/upstream_publication.json publications/
 
-      - name: Pushes to publication file to another repo
-        id: push_directory
-        uses: cpina/github-action-push-to-another-repository@main
+      - name: Pushes to publication file to downstream repo
+        id: push_file
+        uses: dmnemec/copy_file_to_another_repo_action@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source-directory: publications/
-          destination-github-username: 'dpguthrie'
-          destination-repository-name: '${{ matrix.repo }}'
-          user-email: douglas.p.guthrie@gmail.com
-          target-branch: main
+          source_file: 'target/upstream_publication.json'
+          destination_repo: '${{ matrix.repo }}'
+          destination_folder: 'publications'
+          user_email: 'douglas.p.guthrie@gmail.com'
+          user_name: 'dpguthrie'
+          commit_message: 'Writing upstream publication file'
