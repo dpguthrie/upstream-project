@@ -26,7 +26,8 @@ renamed as (
         context_ip,
         context_page_path,
         context_page_url,
-        context_user_agent
+        context_user_agent,
+        'hello world' as new_oclumn
 
     from source
 
