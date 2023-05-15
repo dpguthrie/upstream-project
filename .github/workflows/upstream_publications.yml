@@ -47,11 +47,6 @@ jobs:
           committer_email: actions@github.com
           message: 'Adding manifest from merge run'
 
-      - name: Move publication file
-        run: |
-          mkdir publications
-          mv target/upstream_publication.json publications/
-
       - name: Pushes to publication file to downstream repo
         id: push_file
         uses: dmnemec/copy_file_to_another_repo_action@main
