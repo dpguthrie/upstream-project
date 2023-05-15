@@ -26,8 +26,7 @@ renamed as (
         context_ip,
         context_page_path,
         context_page_url,
-        context_user_agent,
-        'hello world' as another_column
+        context_user_agent
 
     from source
 
