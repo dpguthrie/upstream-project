@@ -1,2 +1,2 @@
 https://github.com/dbt-labs/dbt-core/releases/download/v1.6.0b1/dbt-core-1.6.0b1.tar.gz
-dbt-snowflake
+https://github.com/dbt-labs/dbt-snowflake/archive/main.zip
