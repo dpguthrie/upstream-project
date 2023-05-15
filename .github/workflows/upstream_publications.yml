@@ -8,7 +8,7 @@ jobs:
   send_publications_downstream:
     strategy:
       matrix:
-        repos: ['dpguthrie/downstream-project']
+        repo: ['dpguthrie/downstream-project']
 
     runs-on: ubuntu-latest
     steps:
@@ -39,8 +39,18 @@ jobs:
       - name: Update manifest
         run: mv target/manifest.json prod/
 
-      - name: Copy publication file
-        run:  apk add rsync && rsync -avz --include='*/' --include='upstream_publication.json' --exclude='*' target/ publications/
+      - name: Add Manifest to Repo
+        uses: EndBug/add-and-commit@v9
+        with:
+          add: 'prod/manifest.json'
+          committer_name: Github Actions
+          committer_email: actions@github.com
+          message: 'Adding manifest from merge run'
+
+      - name: Move publication file
+        run: |
+          mkdir publications
+          mv target/upstream_publication.json publications/
 
       - name: Pushes to publication file to another repo
         id: push_directory
@@ -50,6 +60,6 @@ jobs:
         with:
           source-directory: publications/
           destination-github-username: 'dpguthrie'
-          destination-repository-name: '${{ matrix.version }}'
+          destination-repository-name: '${{ matrix.repo }}'
           user-email: douglas.p.guthrie@gmail.com
           target-branch: main
