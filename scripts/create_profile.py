@@ -19,7 +19,7 @@ if __name__ == '__main__':
     target_name = 'prod'
     
     profile_config = {
-        'tpch': {
+        'upstream': {
             'outputs': {
                 target_name: warehouse_config,
             },
