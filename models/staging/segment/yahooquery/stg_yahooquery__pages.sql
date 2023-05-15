@@ -27,7 +27,7 @@ renamed as (
         context_page_path,
         context_page_url,
         context_user_agent,
-        'hello world' as new_oclumn
+        'hello_world' as new_column
 
     from source
 
