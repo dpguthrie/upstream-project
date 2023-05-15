@@ -8,7 +8,7 @@ jobs:
   send_publications_downstream:
     strategy:
       matrix:
-        repo: ['downstream-project']
+        repo: ['dpguthrie/downstream-project']
 
     runs-on: ubuntu-latest
     steps:
