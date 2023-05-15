@@ -1,0 +1,16 @@
+version: 2
+
+
+models:
+  - name: stg_dbtc__link_clicked
+    access: public
+  - name: stg_dbtc__pages
+    access: public
+  - name: stg_dbtc__tracks
+    access: public
+  - name: stg_yahooquery__link_clicked
+    access: public
+  - name: stg_yahooquery__pages
+    access: public
+  - name: stg_yahooquery__tracks
+    access: public
