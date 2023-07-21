@@ -26,11 +26,6 @@ with
         context_page_path,
         context_page_url,
         context_user_agent,
-        page_url_host,
-        referrer_host,
-        gclid,
-        device,
-        device_category,
         '{{ source }}' as src
 
     from {{ ref('stg_' ~ source ~ '__pages') }}
