@@ -6,11 +6,7 @@ on:
       - main
 
 jobs:
-  send_manifest_downstream:
-    strategy:
-      matrix:
-        repo: ['dpguthrie/downstream-project', 'dpguthrie/snowflake-dbt-demo-new']
-
+  prepare_manifest:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -48,6 +44,14 @@ jobs:
           committer_email: actions@github.com
           message: 'Adding manifest from merge run'
 
+  copy_manifest:
+    needs: prepare_manifest
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        repo: ['dpguthrie/downstream-project', 'dpguthrie/snowflake-dbt-demo-new']
+    
+    steps:
       - name: Pushes manifest file to downstream repo(s)
         id: push_file
         uses: dmnemec/copy_file_to_another_repo_action@main
