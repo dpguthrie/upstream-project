@@ -20,7 +20,7 @@ jobs:
           python-version: "3.9.x"
       
       - name: Install python dependencies
-        run: pip install -r requirements.txt
+        run: pip install dbt-snowflake
 
       - name: Generate profiles.yml
         env:
@@ -48,7 +48,7 @@ jobs:
           committer_email: actions@github.com
           message: 'Adding manifest from merge run'
 
-      - name: Pushes to manifest file to downstream repo(s)
+      - name: Pushes manifest file to downstream repo(s)
         id: push_file
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
