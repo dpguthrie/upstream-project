@@ -1,12 +1,12 @@
 name: Upstream Publications
 on:
   workflow_dispatch:
-#   push:
-#     branches:
-#       - main
+  push:
+    branches:
+      - main
 
 jobs:
-  send_publications_downstream:
+  send_manifest_downstream:
     strategy:
       matrix:
         repo: ['dpguthrie/downstream-project']
@@ -48,15 +48,15 @@ jobs:
           committer_email: actions@github.com
           message: 'Adding manifest from merge run'
 
-      - name: Pushes to publication file to downstream repo
+      - name: Pushes to manifest file to downstream repo(s)
         id: push_file
         uses: dmnemec/copy_file_to_another_repo_action@main
         env:
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source_file: 'target/upstream_publication.json'
+          source_file: 'prod/manifest.json'
           destination_repo: '${{ matrix.repo }}'
-          destination_folder: 'publications'
+          destination_folder: 'manifests/upstream'
           user_email: 'douglas.p.guthrie@gmail.com'
           user_name: 'dpguthrie'
           commit_message: 'Writing upstream publication file'
