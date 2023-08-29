@@ -64,4 +64,4 @@ jobs:
           destination_folder: 'manifests/upstream'
           user_email: 'douglas.p.guthrie@gmail.com'
           user_name: 'dpguthrie'
-          commit_message: 'Writing upstream publication file'
+          commit_message: 'Writing upstream manifest file'
