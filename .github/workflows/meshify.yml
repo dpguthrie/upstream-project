@@ -1,4 +1,4 @@
-name: Upstream Publications
+name: Upstream Manifest
 on:
   workflow_dispatch:
   push:
@@ -9,7 +9,7 @@ jobs:
   send_manifest_downstream:
     strategy:
       matrix:
-        repo: ['dpguthrie/downstream-project']
+        repo: ['dpguthrie/downstream-project', 'dpguthrie/snowflake-dbt-demo-new']
 
     runs-on: ubuntu-latest
     steps:
