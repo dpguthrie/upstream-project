@@ -101,7 +101,7 @@ if run_status != 10:
 # Retrieve all public models updated by the job
 run_id = run["data"]["id"]
 variables = {"jobId": JOB_ID, "runId": run_id, "schema": SCHEMA_OVERRIDE}
-results = metadata_request(JOB_QUERY, variables=variables)
+results = metadata_request(session, JOB_QUERY, variables)
 models = results.get("data", {}).get("job", {}).get("models", [])
 public_models = [model for model in models if model["access"].strip() == "public"]
 if not public_models:
@@ -147,7 +147,7 @@ for project_id, project_dict in projects.items():
         "environmentId": project_dict["environment_id"],
         "filter": {"types": ["Model", "Snapshot"]},
     }
-    results = metadata_request(ENVIRONMENT_QUERY, variables=variables)
+    results = metadata_request(session, ENVIRONMENT_QUERY, variables)
     lineage = results.get("environment", {}).get("applied", {}).get("lineage", [])
     nodes_with_public_parents = [
         node
