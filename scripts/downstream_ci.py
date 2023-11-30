@@ -147,6 +147,7 @@ for project_id, project_dict in projects.items():
         "filter": {"types": ["Model", "Snapshot"]},
     }
     results = metadata_request(session, ENVIRONMENT_QUERY, variables)
+    logger.info(f"Results: {results}")
     lineage = results.get("environment", {}).get("applied", {}).get("lineage", [])
     logger.info(f"Lineage: {lineage}")
     nodes_with_public_parents = [
