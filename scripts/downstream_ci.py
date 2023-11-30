@@ -3,8 +3,10 @@ import logging
 import os
 import sys
 import time
+from typing import Dict
 
 # third party
+import requests
 from dbtc import dbtCloudClient
 
 logging.basicConfig(
@@ -56,14 +58,27 @@ query Lineage($environmentId: BigInt!, $filter: AppliedResourcesFilter!) {
 }
 """
 
+
+def metadata_request(session: requests.Session, query: str, variables: Dict) -> Dict:
+    url = "https://metadata.cloud.getdbt.com/beta/graphql"
+    payload = {"query": query, "variables": variables}
+    response = session.post(url, json=payload)
+    response.raise_for_status()
+    return response.json()
+
+
 # Retrieve environment variables
 ACCOUNT_ID = os.getenv("DBT_CLOUD_ACCOUNT_ID", None)
 JOB_ID = os.getenv("JOB_ID", None)
 PULL_REQUEST_ID = int(os.getenv("PULL_REQUEST_ID", None))
 GIT_SHA = os.getenv("GIT_SHA", None)
 SCHEMA_OVERRIDE = f"dbt_cloud_pr_{JOB_ID}_{PULL_REQUEST_ID}"
+TOKEN = os.getenv("DBT_CLOUD_SERVICE_TOKEN", None)
 
-# service token is an env variable
+session = requests.Session()
+session.headers = {
+    "Authorization": f"Bearer {TOKEN}",
+}
 client = dbtCloudClient()
 
 run = client.cloud.trigger_job(
@@ -86,7 +101,7 @@ if run_status != 10:
 # Retrieve all public models updated by the job
 run_id = run["data"]["id"]
 variables = {"jobId": JOB_ID, "runId": run_id, "schema": SCHEMA_OVERRIDE}
-results = client.metadata.query(JOB_QUERY, variables=variables)
+results = metadata_request(JOB_QUERY, variables=variables)
 models = results.get("data", {}).get("job", {}).get("models", [])
 public_models = [model for model in models if model["access"].strip() == "public"]
 if not public_models:
@@ -99,8 +114,8 @@ if not public_models:
 # Find all projects that depend on the updated models
 logger.info("Finding any projects that depend on the models updated during CI.")
 unique_ids = [model["uniqueId"] for model in public_models]
-variables = {"accountId": ACCOUNT_ID}
-results = client.metadata.query(PUBLIC_MODELS_QUERY, variables=variables)
+variables = {"accountId": ACCOUNT_ID, "filter": {"uniqueIds": unique_ids}}
+results = metadata_request(session, PUBLIC_MODELS_QUERY, variables)
 logger.info(f"Results: {results}")
 models = results.get("data", {}).get("account", {}).get("publicModels", [])
 projects = dict()
@@ -132,7 +147,7 @@ for project_id, project_dict in projects.items():
         "environmentId": project_dict["environment_id"],
         "filter": {"types": ["Model", "Snapshot"]},
     }
-    results = client.metadata.query(ENVIRONMENT_QUERY, variables=variables)
+    results = metadata_request(ENVIRONMENT_QUERY, variables=variables)
     lineage = results.get("environment", {}).get("applied", {}).get("lineage", [])
     nodes_with_public_parents = [
         node
