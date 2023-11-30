@@ -104,6 +104,7 @@ results = client.metadata.query(PUBLIC_MODELS_QUERY, variables=variables)
 models = results.get("account", {}).get("publicModels", [])
 projects = dict()
 for model in models:
+    logger.info(model)
     for project in model["dependentProjects"]:
         if project["dependentModelsCount"] > 0:
             project_id = project["projectId"]
@@ -120,7 +121,7 @@ if not projects:
         "Public models found but are not currently being referenced in any downstream "
         "project."
     )
-    sys.exit(1)
+    sys.exit(0)
 
 # Retrieve downstream CI jobs to trigger
 logging.info("Finding downstream CI jobs to trigger.")
