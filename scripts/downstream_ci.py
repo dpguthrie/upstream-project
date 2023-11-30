@@ -155,20 +155,18 @@ for project_id, project_dict in projects.items():
     ]
     step_override = f'dbt build -s {" ".join([node["name"] for node in nodes_with_public_parents])} --vars \'{{ref_schema_override: {SCHEMA_OVERRIDE}}}\''
     jobs = client.cloud.list_jobs(account_id=ACCOUNT_ID, project_id=project_id)
-    ci_jobs = [job for job in jobs.get("data", []) if job["job_type"] == "CI"]
-    logger.info(f"CI Jobs: {ci_jobs}")
+    ci_jobs = [job for job in jobs.get("data", []) if job["job_type"] == "ci"]
     try:
         job_id = ci_jobs[0]["id"]
         jobs_dict[job_id] = step_override
         logging.info(f"Found CI job {job_id} to trigger in project {project_id}.")
     except IndexError:
-        logging.info(f"No job ID found for project: {project_id}")
-        logging.info(jobs)
+        logging.info(f"No CI job found for project: {project_id}")
         pass
 
 
 run_ids = []
-for job_id, step_override in jobs.items():
+for job_id, step_override in jobs_dict.items():
     logging.info(f"Triggering downstream CI job {job_id}")
     run = client.cloud.trigger_job(
         account_id=ACCOUNT_ID,
