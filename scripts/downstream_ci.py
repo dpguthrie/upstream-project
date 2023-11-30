@@ -127,7 +127,7 @@ for model in models:
             if project_id not in projects:
                 logging.info(f"Project ID {project_id} has dependent models")
                 project[project_id] = {
-                    "environment_id": model["defaultEnvironmentId"],
+                    "environment_id": project["defaultEnvironmentId"],
                     models: [],
                 }
             project[project_id]["models"].append(model["uniqueId"])
