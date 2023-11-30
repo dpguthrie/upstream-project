@@ -175,8 +175,7 @@ for job_id, step_override in jobs_dict.items():
             "cause": "Running CI from Upstream Project",
             "git_branch": "main",
             "schema_override": SCHEMA_OVERRIDE,
-            "step_override": step_override,
-            "github_pull_request_id": PULL_REQUEST_ID,
+            "steps_override": [step_override],
         },
         should_poll=False,
     )
