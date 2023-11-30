@@ -121,13 +121,14 @@ models = results.get("data", {}).get("account", {}).get("publicModels", [])
 projects = dict()
 for model in models:
     logger.info(model)
-    for project in model["dependentProjects"]:
-        if project["dependentModelsCount"] > 0:
-            project_id = project["projectId"]
+    for dep_project in model["dependentProjects"]:
+        if dep_project["dependentModelsCount"] > 0:
+            project_id = dep_project["projectId"]
+            logger.info(f"Project ID: {project_id}")
             if project_id not in projects:
                 logging.info(f"Project ID {project_id} has dependent models")
                 projects[project_id] = {
-                    "environment_id": project["defaultEnvironmentId"],
+                    "environment_id": dep_project["defaultEnvironmentId"],
                     models: [],
                 }
             projects[project_id]["models"].append(model["uniqueId"])
