@@ -96,6 +96,7 @@ if not public_models:
     )
     sys.exit(0)
 
+logger.info(f"Public models: {public_models}")
 # Find all projects that depend on the updated models
 logger.info("Finding any projects that depend on the models updated during CI.")
 unique_ids = [model["uniqueId"] for model in public_models]
