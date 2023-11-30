@@ -28,6 +28,7 @@ with
         context_user_agent,
         '{{ source }}' as src
 
+
     from {{ ref('stg_' ~ source ~ '__pages') }}
     where url not like 'http://127.0.0.1:8000%'
         and url not like 'http://localhost:8000%'
