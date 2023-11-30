@@ -105,7 +105,7 @@ if not public_models:
 logger.info("Finding any projects that depend on the models updated during CI.")
 unique_ids = [model["uniqueId"] for model in public_models]
 variables = {"account_id": ACCOUNT_ID, "filter": {"uniqueIds": unique_ids}}
-results = client.metadata.get(PUBLIC_MODELS_QUERY, variables=variables)
+results = client.metadata.query(PUBLIC_MODELS_QUERY, variables=variables)
 models = results.get("account", {}).get("publicModels", [])
 projects = dict()
 for model in models:
@@ -135,7 +135,7 @@ for project_id, project_dict in projects.items():
         "environmentId": project_dict["environment_id"],
         "filter": {"types": ["Model", "Snapshot"]},
     }
-    results = client.metadata.get(ENVIRONMENT_QUERY, variables=variables)
+    results = client.metadata.query(ENVIRONMENT_QUERY, variables=variables)
     lineage = results.get("environment", {}).get("applied", {}).get("lineage", [])
     nodes_with_public_parents = [
         node
