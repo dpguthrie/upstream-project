@@ -99,11 +99,7 @@ if not public_models:
 # Find all projects that depend on the updated models
 logger.info("Finding any projects that depend on the models updated during CI.")
 unique_ids = [model["uniqueId"] for model in public_models]
-variables = {"accountId": ACCOUNT_ID, "filter": {"uniqueIds": unique_ids}}
-variables = {
-    "accountId": 43786,
-    "filter": {"uniqueIds": ["model.upstream.int_segment__pages"]},
-}
+variables = {"accountId": ACCOUNT_ID}
 results = client.metadata.query(PUBLIC_MODELS_QUERY, variables=variables)
 logger.info(f"Results: {results}")
 models = results.get("data", {}).get("account", {}).get("publicModels", [])
