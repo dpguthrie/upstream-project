@@ -1,0 +1,28 @@
+name: Downstream CI
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  downstream_ci:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    env:
+      DBT_CLOUD_SERVICE_TOKEN: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
+      DBT_CLOUD_ACCOUNT_ID: 43786
+      JOB_ID: 106109
+      PULL_REQUEST_ID: ${{ github.event.number }}
+      GIT_SHA: ${{ github.event.pull_request.head.sha }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: "3.9.x"
+
+      - name: Trigger Downstream CI Script
+        run: |
+          pip install dbtc
+          python scripts/downstream_ci.py
