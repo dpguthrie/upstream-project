@@ -67,6 +67,14 @@ def metadata_request(session: requests.Session, query: str, variables: Dict) -> 
     return response.json()
 
 
+def post_comment_to_pr(repo, pr_number, comment, token):
+    url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+    headers = {"Authorization": f"token {token}"}
+    data = {"body": comment}
+    response = requests.post(url, headers=headers, json=data)
+    response.raise_for_status()
+
+
 # Retrieve environment variables
 ACCOUNT_ID = os.getenv("DBT_CLOUD_ACCOUNT_ID", None)
 JOB_ID = os.getenv("JOB_ID", None)
@@ -74,6 +82,8 @@ PULL_REQUEST_ID = int(os.getenv("PULL_REQUEST_ID", None))
 GIT_SHA = os.getenv("GIT_SHA", None)
 SCHEMA_OVERRIDE = f"dbt_cloud_pr_{JOB_ID}_{PULL_REQUEST_ID}"
 TOKEN = os.getenv("DBT_CLOUD_SERVICE_TOKEN", None)
+REPO = os.getenv("GITHUB_REPOSITORY", None)
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", None)
 
 session = requests.Session()
 session.headers = {
@@ -158,9 +168,6 @@ for project_id, project_dict in projects.items():
         for node in lineage
         if any(model in node["publicParentIds"] for model in project_dict["models"])
     ]
-    logger.info(
-        f"Nodes with public parents: {nodes_with_public_parents}"
-    )  # TODO: REMOVE
     step_override = f'dbt build -s {" ".join([node["name"] for node in nodes_with_public_parents])} --vars \'{{ref_schema_override: {SCHEMA_OVERRIDE}}}\''
     jobs = client.cloud.list_jobs(account_id=ACCOUNT_ID, project_id=project_id)
     ci_jobs = [job for job in jobs.get("data", []) if job["job_type"] == "ci"]
@@ -204,9 +211,10 @@ while run_ids:
 if errors:
     logger.error("The following downstream jobs were unsuccessful:")
     for run in errors:
-        logger.error(
+        comment = (
             f'Run ID {run["data"]["id"]} failed.  More info here: {run["data"]["href"]}'
         )
+        post_comment_to_pr(REPO, PULL_REQUEST_ID, comment, GITHUB_TOKEN)
     sys.exit(1)
 
 logger.info("All downstream jobs were successful.")
