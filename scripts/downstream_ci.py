@@ -134,7 +134,7 @@ for model in models:
         if dep_project["dependentModelsCount"] > 0:
             project_id = dep_project["projectId"]
             logger.info(
-                f"Downstream model found: {model['name']}. It's used in project {project_id}"
+                f"Downstream model found from {model['name']} in project {project_id}"
             )
             if project_id not in projects:
                 logging.info(f"Project ID {project_id} has dependent models")
