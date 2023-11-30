@@ -156,6 +156,7 @@ for project_id, project_dict in projects.items():
     step_override = f'dbt build -s {" ".join([node["name"] for node in nodes_with_public_parents])} --vars \'{{ref_schema_override: {SCHEMA_OVERRIDE}}}\''
     jobs = client.cloud.list_jobs(account_id=ACCOUNT_ID, project_id=project_id)
     ci_jobs = [job for job in jobs.get("data", []) if job["job_type"] == "CI"]
+    logger.info(f"CI Jobs: {ci_jobs}")
     try:
         job_id = ci_jobs[0]["id"]
         jobs_dict[job_id] = step_override
