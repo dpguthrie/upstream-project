@@ -89,11 +89,6 @@ variables = {"jobId": JOB_ID, "run_id": run_id, "schema": SCHEMA_OVERRIDE}
 results = client.metadata.query(JOB_QUERY, variables=variables)
 models = results.get("data", {}).get("job", {}).get("models", [])
 public_models = [model for model in models if model["access"].strip() == "public"]
-
-logger.info(
-    f"{bool(public_models)} {len(public_models)} public models updated by this job."
-)
-
 if not public_models:
     logger.info(
         "No public models were updated by this job.  Downstream jobs will not be "
