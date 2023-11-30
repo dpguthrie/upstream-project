@@ -85,7 +85,7 @@ if run_status != 10:
 
 # Retrieve all public models updated by the job
 run_id = run["data"]["id"]
-variables = {"jobId": JOB_ID, "run_id": run_id, "schema": SCHEMA_OVERRIDE}
+variables = {"jobId": JOB_ID, "runId": run_id, "schema": SCHEMA_OVERRIDE}
 results = client.metadata.query(JOB_QUERY, variables=variables)
 models = results.get("data", {}).get("job", {}).get("models", [])
 public_models = [model for model in models if model["access"].strip() == "public"]
@@ -101,6 +101,7 @@ logger.info("Finding any projects that depend on the models updated during CI.")
 unique_ids = [model["uniqueId"] for model in public_models]
 variables = {"accountId": ACCOUNT_ID, "filter": {"uniqueIds": unique_ids}}
 results = client.metadata.query(PUBLIC_MODELS_QUERY, variables=variables)
+logger.info(f"Results: {results}")
 models = results.get("data", {}).get("account", {}).get("publicModels", [])
 projects = dict()
 for model in models:
