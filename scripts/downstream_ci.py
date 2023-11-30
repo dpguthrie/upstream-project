@@ -140,7 +140,7 @@ if not projects:
 
 # Retrieve downstream CI jobs to trigger
 logging.info("Finding downstream CI jobs to trigger.")
-jobs = {}
+jobs_dict = {}
 for project_id, project_dict in projects.items():
     variables = {
         "environmentId": project_dict["environment_id"],
@@ -158,10 +158,13 @@ for project_id, project_dict in projects.items():
     ci_jobs = [job for job in jobs.get("data", []) if job["job_type"] == "CI"]
     try:
         job_id = ci_jobs[0]["id"]
+        jobs_dict[job_id] = step_override
         logging.info(f"Found CI job {job_id} to trigger in project {project_id}.")
     except IndexError:
-        job_id = None
-    jobs[job_id] = step_override
+        logging.info(f"No job ID found for project: {project_id}")
+        logging.info(jobs)
+        pass
+
 
 run_ids = []
 for job_id, step_override in jobs.items():
