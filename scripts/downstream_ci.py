@@ -214,6 +214,7 @@ if errors:
         comment = (
             f'Run ID {run["data"]["id"]} failed.  More info here: {run["data"]["href"]}'
         )
+        logger.error(comment)
         post_comment_to_pr(REPO, PULL_REQUEST_ID, comment, GITHUB_TOKEN)
     sys.exit(1)
 
