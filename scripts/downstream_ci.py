@@ -147,15 +147,20 @@ for project_id, project_dict in projects.items():
         "filter": {"types": ["Model", "Snapshot"]},
     }
     results = metadata_request(session, ENVIRONMENT_QUERY, variables)
-    logger.info(f"Results: {results}")
-    lineage = results.get("environment", {}).get("applied", {}).get("lineage", [])
-    logger.info(f"Lineage: {lineage}")
+    lineage = (
+        results.get("data", {})
+        .get("environment", {})
+        .get("applied", {})
+        .get("lineage", [])
+    )
     nodes_with_public_parents = [
         node
         for node in lineage
         if any(model in node["publicParentIds"] for model in project_dict["models"])
     ]
-    logger.info(f"Nodes with public parents: {nodes_with_public_parents}")
+    logger.info(
+        f"Nodes with public parents: {nodes_with_public_parents}"
+    )  # TODO: REMOVE
     step_override = f'dbt build -s {" ".join([node["name"] for node in nodes_with_public_parents])} --vars \'{{ref_schema_override: {SCHEMA_OVERRIDE}}}\''
     jobs = client.cloud.list_jobs(account_id=ACCOUNT_ID, project_id=project_id)
     ci_jobs = [job for job in jobs.get("data", []) if job["job_type"] == "ci"]
