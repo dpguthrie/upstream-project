@@ -96,17 +96,11 @@ if not public_models:
     )
     sys.exit(0)
 
-logger.info(f"Public models: {public_models}")  # TODO: REMOVE
 # Find all projects that depend on the updated models
 logger.info("Finding any projects that depend on the models updated during CI.")
 unique_ids = [model["uniqueId"] for model in public_models]
-
-logger.info(f"Unique IDs: {unique_ids}")  # TODO: REMOVE
-
-variables = {"account_id": ACCOUNT_ID, "filter": {"uniqueIds": unique_ids}}
+variables = {"accountId": ACCOUNT_ID, "filter": {"uniqueIds": unique_ids}}
 results = client.metadata.query(PUBLIC_MODELS_QUERY, variables=variables)
-
-logger.info(f"Results: {results}")  # TODO: REMOVE
 models = results.get("data", {}).get("account", {}).get("publicModels", [])
 projects = dict()
 for model in models:
