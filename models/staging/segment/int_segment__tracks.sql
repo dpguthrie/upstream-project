@@ -26,7 +26,8 @@ with
         original_timestamp,
         anonymous_id,
         context_library_name,
-        '{{ source }}' as src
+        '{{ source }}' as src,
+        'hello world' as col
 
     from {{ ref('stg_' ~ source ~ '__tracks') }}
 ),
