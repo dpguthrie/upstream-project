@@ -131,7 +131,9 @@ models = results.get("data", {}).get("account", {}).get("publicModels", [])
 projects = dict()
 for model in models:
     for dep_project in model["dependentProjects"]:
+        logger.info(f"Dependent Project: {dep_project}")
         if dep_project["dependentModelsCount"] > 0:
+            logger.info(f"{dep_project} has more than 0 public models being used")
             project_id = dep_project["projectId"]
             if project_id not in projects:
                 logging.info(f"Project ID {project_id} has dependent models")
