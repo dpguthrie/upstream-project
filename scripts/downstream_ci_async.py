@@ -227,7 +227,6 @@ async def main():
         "github_pull_request_id": PULL_REQUEST_ID,
     }
     all_jobs = [{"job_id": JOB_ID, "payload": payload}]
-
     while all_jobs:
         # Trigger the CI jobs
         job_ids = [job["job_id"] for job in all_jobs]
