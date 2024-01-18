@@ -2,6 +2,7 @@
 import asyncio
 import logging
 import os
+import sys
 from typing import Dict, List
 
 # third party
@@ -275,16 +276,21 @@ async def main():
     if len(all_runs) > 1:
         df = pd.DataFrame(all_runs)
         df["status_emoji"] = df["status"].apply(get_run_status_emoji)
-        df["url"] = df.apply(lambda x: f"[Run {x['id']}]({x['href']})", axis=1)
+        df["url"] = df.apply(lambda x: f"[Run Details]({x['href']})", axis=1)
         df = df[["status_emoji", "project_id", "job_id", "duration_humanized", "url"]]
         markdown_df = df.to_markdown(index=False)
         payload = {"body": markdown_df}
-        with httpx.Client(headers={"Authorization": "token {GITHUB_TOKEN}"}):
+        with httpx.Client(headers={"Authorization": "token {GITHUB_TOKEN}"}) as client:
             url = (
                 f"https://api.github.com/repos/{REPO}/issues/{PULL_REQUEST_ID}/comments"
             )
-            response = httpx.post(url, json=payload)
+            response = client.post(url, json=payload)
             response.raise_for_status()
+
+    if any(not is_successful_run(run) for run in all_runs):
+        sys.exit(1)
+
+    sys.exit(0)
 
 
 if __name__ == "__main__":
