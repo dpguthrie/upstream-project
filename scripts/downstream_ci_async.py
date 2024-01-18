@@ -102,6 +102,20 @@ def get_run_status_emoji(status: int) -> str:
     return status_dict[status]
 
 
+def run_status_formatted(run: Dict, duration: float) -> str:
+    """Format a string indicating status of job.
+    Args:
+        run (dict): Dictionary representation of a Run
+        time (float): Elapsed time since job triggered
+    """
+    status = run["status_humanized"]
+    url = run["href"]
+    return (
+        f'Status: "{status.capitalize()}"\nElapsed time: {duration}s\n'
+        f"View here: {url}"
+    )
+
+
 async def dbt_cloud_api_request(path, *, method="get", metadata=False, **kwargs):
     url = full_url(path, metadata)
     headers = {"Authorization": f"Bearer {TOKEN}"}
@@ -126,6 +140,7 @@ async def trigger_job(account_id, job_id, payload) -> Dict:
         run_path = f"/api/v2/accounts/{account_id}/runs/{run_id}/"
         response = await dbt_cloud_api_request(run_path)
         run = response["data"]
+        logger.info(run_status_formatted(run, run["duration"]))
         if is_run_complete(run):
             break
 
@@ -274,12 +289,16 @@ async def main():
 
     # Only write back to the PR if there were multiple runs
     if len(all_runs) > 1:
-        df = pd.DataFrame(all_runs)
+        downstream_runs = [run for run in all_runs if run["job_id"] != JOB_ID]
+        df = pd.DataFrame(downstream_runs)
         df["status_emoji"] = df["status"].apply(get_run_status_emoji)
         df["url"] = df.apply(lambda x: f"[Run Details]({x['href']})", axis=1)
+        df["is_downstream"] = df["job_id"].apply(lambda x: x == JOB_ID)
         df = df[["status_emoji", "project_id", "job_id", "duration_humanized", "url"]]
+        df.columns = ["Status", "Project ID", "Job ID", "Duration", "URL"]
         markdown_df = df.to_markdown(index=False)
-        payload = {"body": markdown_df}
+        comments = f"## Downstream CI Jobs\n\n{markdown_df}"
+        payload = {"body": comments}
         with httpx.Client(
             headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}
         ) as client:
