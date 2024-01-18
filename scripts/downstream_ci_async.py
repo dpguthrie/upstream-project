@@ -126,6 +126,8 @@ async def dbt_cloud_api_request(path, *, method="get", metadata=False, **kwargs)
 
 
 async def trigger_job(account_id, job_id, payload) -> Dict:
+    logger.info(f"Triggering CI job {job_id}")
+
     path = f"/api/v2/accounts/{account_id}/jobs/{job_id}/run/"
     response = await dbt_cloud_api_request(path, method="post", json=payload)
 
@@ -231,15 +233,14 @@ async def main():
     all_jobs = [{"job_id": JOB_ID, "payload": payload}]
     while all_jobs:
         # Trigger the CI jobs
-        job_ids = [job["job_id"] for job in all_jobs]
-        logger.info(f"Triggering CI job(s): {', '.join(job_ids)}")
         job_tasks = [
             trigger_job(ACCOUNT_ID, job["job_id"], job["payload"]) for job in all_jobs
         ]
-        completed_runs = await asyncio.gather(*job_tasks)
         all_jobs.clear()
 
-        for run in completed_runs:
+        for future in asyncio.as_completed(job_tasks):
+            run = await future
+
             # Add run to list of all runs
             all_runs.append(run)
 
