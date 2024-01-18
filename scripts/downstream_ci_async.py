@@ -229,24 +229,27 @@ async def main():
     all_jobs = [{"job_id": JOB_ID, "payload": payload}]
 
     while all_jobs:
-        for job in all_jobs[:]:
-            job_id = job["job_id"]
-            payload = job["payload"]
+        # Trigger the CI jobs
+        job_ids = [job["job_id"] for job in all_jobs]
+        logger.info(f"Triggering CI job(s): {', '.join(job_ids)}")
+        job_tasks = [
+            trigger_job(ACCOUNT_ID, job["job_id"], job["payload"]) for job in all_jobs
+        ]
+        completed_runs = await asyncio.gather(*job_tasks)
+        all_jobs.clear()
 
-            # Trigger the CI job
-            logger.info(f"Triggering CI job {job_id}")
-            run = await trigger_job(ACCOUNT_ID, job_id, payload)
-            all_jobs = remove_job(all_jobs, job_id)
+        for run in completed_runs:
+            # Add run to list of all runs
             all_runs.append(run)
 
             if not is_successful_run(run):
-                logger.info(f"Job {job_id} was not successful.")
+                logger.info(f"Job {run['job_id']} was not successful.")
                 continue
 
             # Any public models updated in the run?
             logger.info(f"Finding if any public models were updated in run {run['id']}")
             public_models = await get_public_models_in_run(
-                job_id, run["id"], SCHEMA_OVERRIDE
+                run["job_id"], run["id"], SCHEMA_OVERRIDE
             )
             if not public_models:
                 logger.info(f"No public models were updated in run {run['id']}.")
