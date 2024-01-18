@@ -152,12 +152,10 @@ async def trigger_job(account_id, job_id, payload) -> Dict:
 async def get_public_models_in_run(job_id: int, run_id: int, schema: str):
     path = "/beta/graphql"
     variables = {"jobId": job_id, "runId": run_id, "schema": schema}
-    logger.info(f"Variables: {variables}")
     payload = {"query": JOB_QUERY, "variables": variables}
     results = await dbt_cloud_api_request(
         path, method="post", metadata=True, json=payload
     )
-    logger.info(f"Results: {results}")
     models = results.get("data", {}).get("job", {}).get("models", [])
     return [model for model in models if model["access"].strip() == "public"]
 
