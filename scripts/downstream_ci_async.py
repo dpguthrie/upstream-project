@@ -111,7 +111,7 @@ def run_status_formatted(run: Dict, duration: float) -> str:
     status = run["status_humanized"]
     url = run["href"]
     return (
-        f'Status: "{status.capitalize()}"\nElapsed time: {duration}s\n'
+        f'\nStatus: "{status.capitalize()}"\nElapsed time: {duration}s\n'
         f"View here: {url}"
     )
 
@@ -126,6 +126,8 @@ async def dbt_cloud_api_request(path, *, method="get", metadata=False, **kwargs)
 
 
 async def trigger_job(account_id, job_id, payload) -> Dict:
+    logger.info(f"Triggering CI job {job_id}")
+
     path = f"/api/v2/accounts/{account_id}/jobs/{job_id}/run/"
     response = await dbt_cloud_api_request(path, method="post", json=payload)
 
@@ -195,7 +197,7 @@ async def get_ci_job(project_id: int):
         return None
 
 
-async def get_downstream_nodes(project_id: int, project_dict: Dict):
+async def get_downstream_nodes(project_dict: Dict):
     variables = {
         "environmentId": project_dict["environment_id"],
         "filter": {"types": ["Model", "Snapshot"]},
@@ -227,26 +229,27 @@ async def main():
         "github_pull_request_id": PULL_REQUEST_ID,
     }
     all_jobs = [{"job_id": JOB_ID, "payload": payload}]
-
     while all_jobs:
-        for job in all_jobs[:]:
-            job_id = job["job_id"]
-            payload = job["payload"]
+        # Trigger the CI jobs
+        job_tasks = [
+            trigger_job(ACCOUNT_ID, job["job_id"], job["payload"]) for job in all_jobs
+        ]
+        all_jobs.clear()
 
-            # Trigger the CI job
-            logger.info(f"Triggering CI job {job_id}")
-            run = await trigger_job(ACCOUNT_ID, job_id, payload)
-            all_jobs = remove_job(all_jobs, job_id)
+        for future in asyncio.as_completed(job_tasks):
+            run = await future
+
+            # Add run to list of all runs
             all_runs.append(run)
 
             if not is_successful_run(run):
-                logger.info(f"Job {job_id} was not successful.")
+                logger.info(f"Job {run['job_id']} was not successful.")
                 continue
 
             # Any public models updated in the run?
             logger.info(f"Finding if any public models were updated in run {run['id']}")
             public_models = await get_public_models_in_run(
-                job_id, run["id"], SCHEMA_OVERRIDE
+                run["job_id"], run["id"], SCHEMA_OVERRIDE
             )
             if not public_models:
                 logger.info(f"No public models were updated in run {run['id']}.")
@@ -268,7 +271,7 @@ async def main():
             # Loop through each project with
             for project_id, project_dict in projects.items():
                 logger.info(f"Checking for downstream nodes in project {project_id}")
-                nodes = await get_downstream_nodes(project_id, project_dict)
+                nodes = await get_downstream_nodes(project_dict)
                 if nodes:
                     logger.info(f"Found downstream nodes in project {project_id}")
                     steps_override = [
@@ -282,7 +285,6 @@ async def main():
                         job_payload = {
                             "cause": "Triggering downstream CI job",
                             "steps_override": steps_override,
-                            "git_branch": "main",
                             "schema_override": SCHEMA_OVERRIDE,
                         }
                         all_jobs.append({"job_id": job["id"], "payload": job_payload})
@@ -298,14 +300,13 @@ async def main():
         markdown_df = df.to_markdown(index=False)
         comments = f"## Downstream CI Jobs\n\n{markdown_df}"
         payload = {"body": comments}
-        with httpx.Client(
-            headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}
-        ) as client:
-            url = (
-                f"https://api.github.com/repos/{REPO}/issues/{PULL_REQUEST_ID}/comments"
-            )
-            response = client.post(url, json=payload)
-            response.raise_for_status()
+    else:
+        payload = {"body": "## Downstream CI Jobs\n\nNo downstream dependencies found."}
+
+    with httpx.Client(headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}) as client:
+        url = f"https://api.github.com/repos/{REPO}/issues/{PULL_REQUEST_ID}/comments"
+        response = client.post(url, json=payload)
+        response.raise_for_status()
 
     if any(not is_successful_run(run) for run in all_runs):
         sys.exit(1)
