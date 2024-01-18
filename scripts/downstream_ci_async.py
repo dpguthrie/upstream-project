@@ -111,7 +111,7 @@ def run_status_formatted(run: Dict, duration: float) -> str:
     status = run["status_humanized"]
     url = run["href"]
     return (
-        f'Status: "{status.capitalize()}"\nElapsed time: {duration}s\n'
+        f'\nStatus: "{status.capitalize()}"\nElapsed time: {duration}s\n'
         f"View here: {url}"
     )
 
@@ -302,14 +302,13 @@ async def main():
         markdown_df = df.to_markdown(index=False)
         comments = f"## Downstream CI Jobs\n\n{markdown_df}"
         payload = {"body": comments}
-        with httpx.Client(
-            headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}
-        ) as client:
-            url = (
-                f"https://api.github.com/repos/{REPO}/issues/{PULL_REQUEST_ID}/comments"
-            )
-            response = client.post(url, json=payload)
-            response.raise_for_status()
+    else:
+        payload = {"body": "## Downstream CI Jobs\n\nNo downstream dependencies found."}
+
+    with httpx.Client(headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}) as client:
+        url = f"https://api.github.com/repos/{REPO}/issues/{PULL_REQUEST_ID}/comments"
+        response = client.post(url, json=payload)
+        response.raise_for_status()
 
     if any(not is_successful_run(run) for run in all_runs):
         sys.exit(1)
