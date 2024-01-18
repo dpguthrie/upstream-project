@@ -195,7 +195,7 @@ async def get_ci_job(project_id: int):
         return None
 
 
-async def get_downstream_nodes(project_id: int, project_dict: Dict):
+async def get_downstream_nodes(project_dict: Dict):
     variables = {
         "environmentId": project_dict["environment_id"],
         "filter": {"types": ["Model", "Snapshot"]},
@@ -268,7 +268,7 @@ async def main():
             # Loop through each project with
             for project_id, project_dict in projects.items():
                 logger.info(f"Checking for downstream nodes in project {project_id}")
-                nodes = await get_downstream_nodes(project_id, project_dict)
+                nodes = await get_downstream_nodes(project_dict)
                 if nodes:
                     logger.info(f"Found downstream nodes in project {project_id}")
                     steps_override = [
@@ -282,7 +282,6 @@ async def main():
                         job_payload = {
                             "cause": "Triggering downstream CI job",
                             "steps_override": steps_override,
-                            "git_branch": "main",
                             "schema_override": SCHEMA_OVERRIDE,
                         }
                         all_jobs.append({"job_id": job["id"], "payload": job_payload})
