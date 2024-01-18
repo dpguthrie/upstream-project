@@ -289,7 +289,7 @@ async def main():
 
     # Only write back to the PR if there were multiple runs
     if len(all_runs) > 1:
-        downstream_runs = [run for run in all_runs if run["job_id"] != JOB_ID]
+        downstream_runs = [run for run in all_runs if int(run["job_id"]) != int(JOB_ID)]
         df = pd.DataFrame(downstream_runs)
         df["status_emoji"] = df["status"].apply(get_run_status_emoji)
         df["url"] = df.apply(lambda x: f"[Run Details]({x['href']})", axis=1)
