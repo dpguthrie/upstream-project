@@ -26,7 +26,7 @@ with
         context_page_path,
         context_page_url,
         context_user_agent,
-        '{{ source }}' as src2
+        '{{ source }}' as src
         
 
     from {{ ref('stg_' ~ source ~ '__pages') }}
