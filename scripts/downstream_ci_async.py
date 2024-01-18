@@ -280,7 +280,9 @@ async def main():
         df = df[["status_emoji", "project_id", "job_id", "duration_humanized", "url"]]
         markdown_df = df.to_markdown(index=False)
         payload = {"body": markdown_df}
-        with httpx.Client(headers={"Authorization": "token {GITHUB_TOKEN}"}) as client:
+        with httpx.Client(
+            headers={"Authorization": f"Bearer {GITHUB_TOKEN}"}
+        ) as client:
             url = (
                 f"https://api.github.com/repos/{REPO}/issues/{PULL_REQUEST_ID}/comments"
             )
