@@ -3,26 +3,24 @@ on:
   pull_request:
     branches:
       - main
-
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
 jobs:
-  downstream_ci:
-    if: github.event.pull_request.draft == false
+  trigger-dbt-job:
     runs-on: ubuntu-latest
-    env:
-      DBT_CLOUD_SERVICE_TOKEN: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
-      DBT_CLOUD_ACCOUNT_ID: 43786
-      JOB_ID: 106109
-      PULL_REQUEST_ID: ${{ github.event.number }}
-      GIT_SHA: ${{ github.event.pull_request.head.sha }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-        with:
-          python-version: "3.9.x"
-
-      - name: Trigger Downstream CI Script
-        run: |
-          pip install httpx pandas tabulate
-          python scripts/downstream_ci_async.py
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: dbt Cloud Downstream CI Action
+      uses: dpguthrie/dbt-cloud-downstream-ci-action@0.6.0
+      with:
+        dbt_cloud_account_id: 43786
+        dbt_cloud_job_id: 106109
+        dbt_cloud_service_token: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
+        dbt_cloud_host: 'cloud.getdbt.com'  # Optional
+        pull_request_id: ${{ github.event.number }}
+        git_sha: ${{ github.event.pull_request.head.sha }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
