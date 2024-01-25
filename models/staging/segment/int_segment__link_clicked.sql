@@ -26,6 +26,7 @@ with
         context_page_path,
         context_page_referrer,
         '{{ source }}' as src
+        'hello world' as col
 
     from {{ ref('stg_' ~ source ~ '__link_clicked') }}
 ),
