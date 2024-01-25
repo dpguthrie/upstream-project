@@ -20,3 +20,4 @@ jobs:
         dbt_cloud_account_id: 43786
         dbt_cloud_job_id: 106109
         dbt_cloud_service_token: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
