@@ -22,4 +22,4 @@ jobs:
         dbt_cloud_service_token: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
     - name: Echo
-      run: echo "${{ github.event.pull_request.head.sha }}"
+      run: echo "${{ secrets.GITHUB_HEAD_REF }}"
