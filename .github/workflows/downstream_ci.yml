@@ -12,6 +12,8 @@ jobs:
   trigger-dbt-job:
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
     - name: dbt Cloud Downstream CI Action
       uses: dpguthrie/dbt-cloud-downstream-ci-action@main
       with:
