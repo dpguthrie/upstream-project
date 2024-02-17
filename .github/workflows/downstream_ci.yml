@@ -13,14 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: dbt Cloud Downstream CI Action
-      uses: dpguthrie/dbt-cloud-downstream-ci-action@0.6.2
+      uses: dpguthrie/dbt-cloud-downstream-ci-action@0.6.4
       with:
         dbt_cloud_account_id: 43786
         dbt_cloud_job_id: 106109
         dbt_cloud_service_token: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
-        dbt_cloud_host: 'cloud.getdbt.com'  # Optional
-        pull_request_id: ${{ github.event.number }}
-        git_sha: ${{ github.event.pull_request.head.sha }}
         github_token: ${{ secrets.GITHUB_TOKEN }}
+        include_downstream: false
+        dbt_command: run
