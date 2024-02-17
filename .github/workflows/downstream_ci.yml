@@ -15,7 +15,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
     - name: dbt Cloud Downstream CI Action
-      uses: dpguthrie/dbt-cloud-downstream-ci-action@main
+      uses: dpguthrie/dbt-cloud-downstream-ci-action@feat/ref-database
       with:
         dbt_cloud_account_id: 43786
         dbt_cloud_job_id: 106109
