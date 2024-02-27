@@ -28,7 +28,7 @@ jobs:
             -H "Authorization: Bearer ${TOKEN}")
           {
             echo 'ENV_DETAILS<<EOF'
-            echo $RESPONSE | jq '.data | {account_id, project_id, name, dbt_version, type, use_custom_branch, custom_branch, supports_docs}'
+            echo $RESPONSE | jq '.data | {id, account_id, project_id, name, dbt_version, type, use_custom_branch, custom_branch, supports_docs}'
             echo EOF
           } >> "$GITHUB_ENV"
       
