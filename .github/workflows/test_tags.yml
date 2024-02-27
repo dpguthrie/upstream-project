@@ -34,8 +34,9 @@ jobs:
       
       - name: Update Environment
         run: |
-          echo $ENV_DETAILS
           UPDATED_ENV=$(echo $ENV_DETAILS | jq --arg tag "$TAG_NAME" '.custom_branch = $tag')
+          echo $TAG_NAME
+          echo $UPDATED_ENV
           curl -s -X POST "https://cloud.getdbt.com/api/v3/accounts/${{ env.ACCOUNT_ID }}/projects/${{ env.PROJECT_ID }}/environments/${{ env.ENV_ID }}/" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
