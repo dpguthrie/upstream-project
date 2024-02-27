@@ -1,0 +1,37 @@
+name: Update 
+
+on:
+  push:
+    tags:
+      - 'prod-*'
+
+jobs:
+  update-dbt-environment:
+    runs-on: ubuntu-latest
+    env:
+        ACCOUNT_ID: ${{ secrets.DBT_CLOUD_ACCOUNT_ID }}
+        PROJECT_ID: ${{ secrets.DBT_CLOUD_PROJECT_ID }}
+        ENV_ID: ${{ secrets.DBT_CLOUD_ENVIRONMENT_ID }}
+        TOKEN: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      
+      - name: Set tag name
+        id: set_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+      
+      - name: Get Environment Details
+        id: get_env_details
+        run: |
+          RESPONSE=$(curl -s -X GET "https://cloud.getdbt.com/api/v3/accounts/${{ env.ACCOUNT_ID }}/projects/${{ env.PROJECT_ID }}/environments/${{ env.ENV_ID }}/" \
+            -H "Authorization: Token TOKEN")
+          echo "ENV_DETAILS=$(echo $RESPONSE | jq '.data')" >> $GITHUB_ENV
+      
+      - name: Update Environment
+        run: |
+          UPDATED_ENV=$(echo $ENV_DETAILS | jq --arg tag "$TAG_NAME" '.custom_branch = $tag')
+          curl -s -X POST "https://cloud.getdbt.com/api/v3/accounts/${{ env.ACCOUNT_ID }}/projects/${{ env.PROJECT_ID }}/environments/${{ env.ENV_ID }}/" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Token TOKEN" \
+            -d "$UPDATED_ENV"
