@@ -26,8 +26,8 @@ jobs:
         run: |
           RESPONSE=$(curl -s -X GET "https://cloud.getdbt.com/api/v3/accounts/${{ env.ACCOUNT_ID }}/projects/${{ env.PROJECT_ID }}/environments/${{ env.ENV_ID }}/" \
             -H "Authorization: Bearer ${TOKEN}")
-          echo $RESPONSE
-          echo "ENV_DETAILS=$(echo $RESPONSE | jq '.data')" >> $GITHUB_ENV
+          echo "ENV_DETAILS=$(echo $RESPONSE | jq '.data | {id, account_id, project_id, credentials_id, extended_attributes_id, name, dbt_version, type, use_custom_branch, custom_branch, supports_docs, state, deployment_type}')" >> $GITHUB_ENV
+          echo $ENV_DETAILS
       
       - name: Update Environment
         run: |
