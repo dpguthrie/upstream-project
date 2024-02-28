@@ -1,0 +1,8 @@
+{
+  "dbt.dbtIntegration": "cloud",
+  "dbt.enableNewDocsPanel": true,  
+  "dbt.enableNewLineagePanel": true,
+  "dbt.altimateAiKey": "417364456c23e22279b19f1faa9ae018",
+  "dbt.altimateInstanceName": "dbtcloud",
+  "dbt.queryLimit": 500,
+}
