@@ -1,43 +1,20 @@
-name: Update 
+name: Update Prod Environment
 
 on:
   push:
     tags:
-      - 'prod-*'
+      - '*'
 
 jobs:
-  update-dbt-environment:
+  update-environment:
     runs-on: ubuntu-latest
-    env:
-        ACCOUNT_ID: ${{ secrets.DBT_CLOUD_ACCOUNT_ID }}
-        PROJECT_ID: ${{ secrets.DBT_CLOUD_PROJECT_ID }}
-        ENV_ID: ${{ secrets.DBT_CLOUD_ENVIRONMENT_ID }}
-        TOKEN: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      
-      - name: Set tag name
-        id: set_tag
-        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
-
-      - name: Get Environment Details
-        id: get_env_details
-        run: |
-          RESPONSE=$(curl -s -X GET "https://cloud.getdbt.com/api/v3/accounts/${{ env.ACCOUNT_ID }}/projects/${{ env.PROJECT_ID }}/environments/${{ env.ENV_ID }}/" \
-            -H "Authorization: Bearer ${TOKEN}")
-          {
-            echo 'ENV_DETAILS<<EOF'
-            echo $RESPONSE | jq '.data | {id, account_id, project_id, name, dbt_version, type, use_custom_branch, custom_branch, supports_docs, state}'
-            echo EOF
-          } >> "$GITHUB_ENV"
-      
-      - name: Update Environment
-        run: |
-          UPDATED_ENV=$(echo $ENV_DETAILS | jq --arg tag "$TAG_NAME" '. | .custom_branch = $tag')
-          echo $TAG_NAME
-          echo $UPDATED_ENV
-          curl -s -X POST "https://cloud.getdbt.com/api/v3/accounts/${{ env.ACCOUNT_ID }}/projects/${{ env.PROJECT_ID }}/environments/${{ env.ENV_ID }}/" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d "$UPDATED_ENV"
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: dbt Cloud Downstream CI Action
+      uses: dpguthrie/dbt-cloud-git-tag-action@0.1.0
+      with:
+        dbt_cloud_account_id: ${{ secrets.DBT_CLOUD_ACCOUNT_ID }}
+        dbt_cloud_project_id: ${{ secrets.DBT_CLOUD_PROJECT_ID }}
+        dbt_cloud_environment_id: ${{ secrets.DBT_CLOUD_ENVIRONMENT_ID }}
+        dbt_cloud_service_token: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
