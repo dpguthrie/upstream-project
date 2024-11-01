@@ -1,0 +1,20 @@
+name: Update Prod Environment
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  update-environment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: dbt Cloud Downstream CI Action
+      uses: dpguthrie/dbt-cloud-git-tag-action@main
+      with:
+        dbt_cloud_account_id: ${{ secrets.DBT_CLOUD_ACCOUNT_ID }}
+        dbt_cloud_project_id: ${{ secrets.DBT_CLOUD_PROJECT_ID }}
+        dbt_cloud_environment_id: ${{ secrets.DBT_CLOUD_ENVIRONMENT_ID }}
+        dbt_cloud_service_token: ${{ secrets.DBT_CLOUD_SERVICE_TOKEN }}
